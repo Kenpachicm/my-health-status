@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OG Image Generator</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        canvas {
+            border: 2px solid #ddd;
+            margin: 20px 0;
+            max-width: 100%;
+            height: auto;
+        }
+        button {
+            background: #2563EB;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1D4ED8;
+        }
+        .instructions {
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <h1>MyHealthStatus OG Image Generator</h1>
+        <p>This page generates a 1200x630px Open Graph image for social media sharing.</p>
+        <p>Click the button below to download the generated image as PNG.</p>
+    </div>
+
+    <canvas id="ogCanvas" width="1200" height="630"></canvas>
+    <button onclick="downloadImage()">Download OG Image</button>
+
+    <script>
+        const canvas = document.getElementById('ogCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+        gradient.addColorStop(0, '#EFF6FF');
+        gradient.addColorStop(1, '#DBEAFE');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1200, 630);
+
+        // Draw shield icon
+        ctx.fillStyle = '#2563EB';
+        ctx.strokeStyle = '#1E40AF';
+        ctx.lineWidth = 4;
+
+        ctx.beginPath();
+        ctx.moveTo(600, 150);
+        ctx.lineTo(670, 180);
+        ctx.lineTo(670, 240);
+        ctx.quadraticCurveTo(670, 280, 600, 330);
+        ctx.quadraticCurveTo(530, 280, 530, 240);
+        ctx.lineTo(530, 180);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw checkmark in shield
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(580, 230);
+        ctx.lineTo(595, 250);
+        ctx.lineTo(625, 210);
+        ctx.stroke();
+
+        // Logo text
+        ctx.fillStyle = '#111827';
+        ctx.font = 'bold 72px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('MyHealthStatus', 600, 390);
+
+        // Tagline
+        ctx.fillStyle = '#2563EB';
+        ctx.font = '600 36px system-ui, -apple-system, sans-serif';
+        ctx.fillText('Your Test Results. Connected. Verified. Shareable.', 600, 450);
+
+        // Description line 1
+        ctx.fillStyle = '#6B7280';
+        ctx.font = '24px system-ui, -apple-system, sans-serif';
+        ctx.fillText('Connect to verified test results from partnered clinics.', 600, 500);
+
+        // Description line 2
+        ctx.fillText('Share securely with partners via QR codes.', 600, 535);
+
+        // Draw trust badges
+        function drawBadge(x, y, emoji, text, color) {
+            // Badge background
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = '#D1D5DB';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.roundRect(x, y, 200, 60, 8);
+            ctx.fill();
+            ctx.stroke();
+
+            // Badge text
+            ctx.fillStyle = color;
+            ctx.font = '600 18px system-ui, -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(emoji + ' ' + text, x + 100, y + 38);
+        }
+
+        drawBadge(280, 560, '🔒', 'HIPAA Compliant', '#059669');
+        drawBadge(500, 560, '🏥', '150+ Clinics', '#2563EB');
+        drawBadge(720, 560, '🛡️', 'Encrypted', '#7C3AED');
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'og-image.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>

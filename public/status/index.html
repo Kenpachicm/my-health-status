@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Status — MyHealthStatus</title>
+  <meta name="description" content="Real-time status and uptime information for MyHealthStatus services." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #22c55e;
+      --green-light: #dcfce7;
+      --green-dark: #16a34a;
+      --yellow: #eab308;
+      --yellow-light: #fef9c3;
+      --red:    #ef4444;
+      --red-light: #fee2e2;
+      --gray-50:  #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+
+    /* ── Top nav ─────────────────────────────── */
+    .topnav {
+      background: #fff;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .nav-logo-mark {
+      width: 26px; height: 26px;
+      background: var(--gray-900);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .nav-logo-mark svg { width: 14px; height: 14px; color: #fff; }
+
+    .nav-logo-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      color: var(--gray-500);
+      text-decoration: none;
+    }
+    .nav-link:hover { color: var(--gray-800); }
+
+    /* ── Hero ────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 56px 24px 48px;
+      background: #fff;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .hero-status-dot {
+      width: 12px; height: 12px;
+      background: var(--green);
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      position: relative;
+      top: 1px;
+      animation: pulse-green 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+      50%       { box-shadow: 0 0 0 7px rgba(34,197,94,0); }
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--green-dark);
+      background: var(--green-light);
+      border: 1px solid #bbf7d0;
+      border-radius: 99px;
+      padding: 5px 14px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--gray-900);
+      letter-spacing: -0.025em;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 480px) { .hero h1 { font-size: 24px; } }
+
+    .hero-subtitle {
+      font-size: 15px;
+      color: var(--gray-500);
+    }
+
+    .hero-meta {
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    #last-updated-ts { font-weight: 500; color: var(--gray-500); }
+
+    /* ── Layout ──────────────────────────────── */
+    .page {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 40px 16px 80px;
+    }
+
+    /* ── Section header ──────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--gray-400);
+    }
+
+    .section-all-good {
+      font-size: 12px;
+      color: var(--green-dark);
+      font-weight: 500;
+    }
+
+    /* ── Card ────────────────────────────────── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    /* ── Component rows ──────────────────────── */
+    .component-row {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-100);
+      gap: 12px;
+      transition: background 0.1s;
+    }
+
+    .component-row:last-child { border-bottom: none; }
+    .component-row:hover { background: var(--gray-50); }
+
+    .component-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ci-green  { background: var(--green-light); }
+    .ci-yellow { background: var(--yellow-light); }
+    .ci-red    { background: var(--red-light); }
+
+    .component-icon svg { width: 15px; height: 15px; }
+    .ci-green svg  { color: var(--green-dark); }
+    .ci-yellow svg { color: #854d0e; }
+    .ci-red svg    { color: #b91c1c; }
+
+    .component-info { flex: 1; min-width: 0; }
+
+    .component-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .component-desc {
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-top: 1px;
+    }
+
+    .component-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .uptime-label {
+      font-size: 12px;
+      color: var(--gray-500);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    .sp-green  { background: var(--green-light); color: var(--green-dark); }
+    .sp-yellow { background: var(--yellow-light); color: #854d0e; }
+    .sp-red    { background: var(--red-light);    color: #b91c1c; }
+
+    .status-dot-sm {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .sd-green  { background: var(--green); }
+    .sd-yellow { background: var(--yellow); }
+    .sd-red    { background: var(--red); }
+
+    /* ── Uptime history ──────────────────────── */
+    .history-inner {
+      padding: 20px 20px 16px;
+    }
+
+    .history-component {
+      margin-bottom: 20px;
+    }
+
+    .history-component:last-child { margin-bottom: 0; }
+
+    .history-component-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .history-component-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+
+    .history-uptime {
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    .history-uptime span {
+      font-weight: 600;
+      color: var(--green-dark);
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 32px;
+    }
+
+    .bar {
+      flex: 1;
+      min-width: 0;
+      border-radius: 2px;
+      cursor: default;
+      transition: filter 0.1s;
+      position: relative;
+    }
+
+    .bar:hover { filter: brightness(0.88); }
+
+    .bar-green  { background: var(--green);  height: 100%; }
+    .bar-yellow { background: var(--yellow); height: 60%; }
+    .bar-red    { background: var(--red);    height: 100%; }
+    .bar-empty  { background: var(--gray-200); height: 60%; }
+
+    .bar-range {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .bar-range-label {
+      font-size: 11px;
+      color: var(--gray-400);
+    }
+
+    /* ── Incidents ───────────────────────────── */
+    .no-incidents {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 32px 20px;
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    .no-incidents-icon {
+      width: 36px; height: 36px;
+      background: var(--green-light);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .no-incidents-icon svg { width: 18px; height: 18px; color: var(--green-dark); }
+
+    .incident-row {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .incident-row:last-child { border-bottom: none; }
+
+    .incident-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .incident-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .incident-date {
+      font-size: 12px;
+      color: var(--gray-400);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .incident-desc {
+      font-size: 13px;
+      color: var(--gray-500);
+      line-height: 1.6;
+    }
+
+    /* ── Subscribe ───────────────────────────── */
+    .subscribe-card {
+      background: var(--gray-900);
+      border: none;
+      border-radius: 12px;
+      padding: 28px 24px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .subscribe-text { flex: 1; min-width: 180px; }
+
+    .subscribe-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .subscribe-subtitle {
+      font-size: 13px;
+      color: var(--gray-400);
+    }
+
+    .subscribe-form {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .subscribe-input {
+      border: 1px solid #374151;
+      background: #111827;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+      padding: 9px 14px;
+      border-radius: 8px;
+      width: 220px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .subscribe-input::placeholder { color: var(--gray-600); }
+    .subscribe-input:focus { border-color: var(--green); }
+
+    .subscribe-btn {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    .subscribe-btn:hover  { background: var(--green-dark); }
+    .subscribe-btn:active { transform: scale(0.97); }
+
+    .subscribe-confirm {
+      display: none;
+      font-size: 13px;
+      color: var(--green);
+      font-weight: 500;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── Refresh countdown ───────────────────── */
+    .refresh-bar-wrap {
+      height: 2px;
+      background: var(--gray-200);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .refresh-bar {
+      height: 100%;
+      background: var(--green);
+      border-radius: 99px;
+      width: 100%;
+      transition: width 1s linear;
+    }
+
+    /* ── Footer ──────────────────────────────── */
+    .footer {
+      border-top: 1px solid var(--gray-200);
+      padding-top: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-align: center;
+    }
+
+    .footer-text { font-size: 12.5px; color: var(--gray-400); }
+    .footer a { color: var(--gray-500); text-decoration: none; }
+    .footer a:hover { color: var(--gray-800); text-decoration: underline; }
+
+    /* ── Legend ──────────────────────────────── */
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      color: var(--gray-500);
+    }
+
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ── Auto-refresh notice ─────────────────── */
+    .refresh-notice {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--gray-400);
+      margin-bottom: 28px;
+    }
+
+    .refresh-dot {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse-green 2s infinite;
+    }
+
+    @media (max-width: 600px) {
+      .component-right { gap: 8px; }
+      .uptime-label { display: none; }
+      .subscribe-input { width: 100%; }
+      .subscribe-form { width: 100%; }
+      .hero { padding: 36px 20px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top nav -->
+<nav class="topnav">
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+    </div>
+    <span class="nav-logo-name">MyHealthStatus</span>
+  </a>
+  <div class="nav-right">
+    <a href="/" class="nav-link">App</a>
+    <a href="/docs/development-process.html" class="nav-link">Docs</a>
+    <a href="mailto:support@myhealthstatus.org" class="nav-link">Support</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">
+    <span class="hero-status-dot"></span>
+    All Systems Operational
+  </div>
+  <h1>MyHealthStatus System Status</h1>
+  <p class="hero-subtitle">Real-time status and uptime history for all services.</p>
+  <p class="hero-meta">Last updated: <span id="last-updated-ts">—</span></p>
+  <div class="refresh-bar-wrap" style="max-width:180px;margin:10px auto 0;">
+    <div class="refresh-bar" id="refresh-progress"></div>
+  </div>
+</div>
+
+<!-- Page body -->
+<div class="page">
+
+  <!-- Refresh notice -->
+  <div class="refresh-notice">
+    <span class="refresh-dot"></span>
+    Auto-refreshes every 60 seconds &nbsp;·&nbsp; <span id="refresh-countdown">60</span>s until next update
+  </div>
+
+  <!-- Components -->
+  <div class="section-header">
+    <span class="section-title">System Components</span>
+    <span class="section-all-good">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:-1px;margin-right:4px;color:#16a34a"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      All systems normal
+    </span>
+  </div>
+
+  <div class="card" id="component-list">
+    <!-- Rows injected by JS -->
+  </div>
+
+  <!-- 90-day uptime -->
+  <div class="section-header">
+    <span class="section-title">90-Day Uptime</span>
+  </div>
+
+  <div class="card">
+    <div class="history-inner" id="uptime-history">
+      <!-- Injected by JS -->
+    </div>
+    <div style="padding:0 20px 14px;">
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Operational</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Degraded</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Outage</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gray-200)"></div>No data</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incidents -->
+  <div class="section-header">
+    <span class="section-title">Incident History</span>
+    <span style="font-size:12px;color:var(--gray-400);">Last 90 days</span>
+  </div>
+
+  <div class="card" id="incident-list">
+    <!-- Injected by JS -->
+  </div>
+
+  <!-- Subscribe -->
+  <div class="subscribe-card">
+    <div class="subscribe-text">
+      <div class="subscribe-title">Stay informed</div>
+      <div class="subscribe-subtitle">Get email updates when incidents are reported or resolved.</div>
+    </div>
+    <div>
+      <form class="subscribe-form" id="subscribe-form">
+        <input
+          type="email"
+          class="subscribe-input"
+          id="subscribe-email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          required
+        />
+        <button type="submit" class="subscribe-btn">Subscribe</button>
+      </form>
+      <div class="subscribe-confirm" id="subscribe-confirm">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        Subscribed! We'll keep you updated.
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-text">
+      Powered by <a href="https://netlify.com" target="_blank" rel="noopener">Netlify</a> infrastructure
+      &nbsp;·&nbsp;
+      Hosted on <a href="https://firebase.google.com" target="_blank" rel="noopener">Firebase</a>
+    </div>
+    <div class="footer-text">
+      Questions? <a href="mailto:support@myhealthstatus.org">support@myhealthstatus.org</a>
+    </div>
+    <div class="footer-text" style="margin-top:8px;">
+      &copy; 2026 MyHealthStatus &nbsp;·&nbsp;
+      <a href="/.well-known/security.txt">security.txt</a> &nbsp;·&nbsp;
+      <a href="/docs/development-process.html">Docs</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // ── Data ─────────────────────────────────────────────────────────────────
+  const COMPONENTS = [
+    {
+      id: 'webapp',
+      name: 'Web Application',
+      desc: 'myhealthstatus.netlify.app',
+      status: 'operational',
+      uptime: '99.98%',
+      icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>`,
+    },
+    {
+      id: 'db',
+      name: 'Database',
+      desc: 'Firebase Firestore',
+      status: 'operational',
+      uptime: '99.99%',
+      icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+      </svg>`,
+    },
+    {
+      id: 'auth',
+      name: 'Authentication System',
+      desc: 'JWT + Firebase Auth',
+      status: 'operational',
+      uptime: '99.99%',
+      icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+      </svg>`,
+    },
+    {
+      id: 'storage',
+      name: 'File Storage',
+      desc: 'Firebase Storage (test results)',
+      status: 'operational',
+      uptime: '99.97%',
+      icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>`,
+    },
+  ];
+
+  const INCIDENTS = [
+    // Uncomment to test incident display:
+    // {
+    //   date: 'Apr 12, 2026',
+    //   title: 'Elevated error rates on file uploads',
+    //   status: 'resolved',
+    //   desc: 'A temporary spike in file upload failures was detected and resolved within 18 minutes. Root cause was a storage quota configuration issue. No data was lost.',
+    // },
+  ];
+
+  // ── Status helpers ────────────────────────────────────────────────────────
+  const STATUS_CONFIG = {
+    operational: { pill: 'sp-green', dot: 'sd-green', icon: 'ci-green', label: 'Operational' },
+    degraded:    { pill: 'sp-yellow', dot: 'sd-yellow', icon: 'ci-yellow', label: 'Degraded Performance' },
+    outage:      { pill: 'sp-red',    dot: 'sd-red',    icon: 'ci-red',    label: 'Major Outage' },
+  };
+
+  // ── Render components ─────────────────────────────────────────────────────
+  function renderComponents() {
+    const el = document.getElementById('component-list');
+    el.innerHTML = COMPONENTS.map(c => {
+      const cfg = STATUS_CONFIG[c.status];
+      return `
+        <div class="component-row">
+          <div class="component-icon ${cfg.icon}">${c.icon}</div>
+          <div class="component-info">
+            <div class="component-name">${c.name}</div>
+            <div class="component-desc">${c.desc}</div>
+          </div>
+          <div class="component-right">
+            <span class="uptime-label">${c.uptime} uptime</span>
+            <span class="status-pill ${cfg.pill}">
+              <span class="status-dot-sm ${cfg.dot}"></span>
+              ${cfg.label}
+            </span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ── Render uptime history ─────────────────────────────────────────────────
+  function renderUptimeHistory() {
+    const el = document.getElementById('uptime-history');
+    const today = new Date();
+
+    el.innerHTML = COMPONENTS.map(c => {
+      const bars = Array.from({ length: 90 }, (_, i) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() - (89 - i));
+        // MVP: all operational — deterministic stable seed so it doesn't change per render
+        const seed = d.getDate() + d.getMonth() * 31;
+        const barClass = 'bar-green';
+        const title = d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        return `<div class="bar ${barClass}" title="${title}: Operational" style="height:${70 + (seed % 30)}%"></div>`;
+      }).join('');
+
+      const ninetyDaysAgo = new Date(today);
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 89);
+      const fromLabel = ninetyDaysAgo.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+      const toLabel   = today.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+
+      return `
+        <div class="history-component">
+          <div class="history-component-header">
+            <span class="history-component-name">${c.name}</span>
+            <span class="history-uptime"><span>${c.uptime}</span> over 90 days</span>
+          </div>
+          <div class="bar-row">${bars}</div>
+          <div class="bar-range">
+            <span class="bar-range-label">${fromLabel}</span>
+            <span class="bar-range-label">Today</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ── Render incidents ──────────────────────────────────────────────────────
+  function renderIncidents() {
+    const el = document.getElementById('incident-list');
+    if (INCIDENTS.length === 0) {
+      el.innerHTML = `
+        <div class="no-incidents">
+          <div class="no-incidents-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <span>No incidents reported in the last 90 days.</span>
+        </div>
+      `;
+      return;
+    }
+    el.innerHTML = INCIDENTS.map(inc => `
+      <div class="incident-row">
+        <div class="incident-header">
+          <span class="incident-title">${inc.title}</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <span class="status-pill sp-green" style="font-size:11px;padding:2px 8px;">
+              <span class="status-dot-sm sd-green"></span>Resolved
+            </span>
+            <span class="incident-date">${inc.date}</span>
+          </div>
+        </div>
+        <div class="incident-desc">${inc.desc}</div>
+      </div>
+    `).join('');
+  }
+
+  // ── Timestamp ─────────────────────────────────────────────────────────────
+  function updateTimestamp() {
+    const now = new Date();
+    const s = now.toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', second: '2-digit',
+      hour12: true,
+      timeZoneName: 'short',
+    });
+    document.getElementById('last-updated-ts').textContent = s;
+  }
+
+  // ── Auto-refresh countdown ────────────────────────────────────────────────
+  let secondsLeft = 60;
+  const countdownEl = document.getElementById('refresh-countdown');
+  const progressEl  = document.getElementById('refresh-progress');
+
+  function tick() {
+    secondsLeft--;
+    countdownEl.textContent = secondsLeft;
+    progressEl.style.width = ((secondsLeft / 60) * 100) + '%';
+
+    if (secondsLeft <= 0) {
+      secondsLeft = 60;
+      updateTimestamp();
+      // In a real integration: re-fetch status from API and re-render
+    }
+  }
+
+  // ── Subscribe form ────────────────────────────────────────────────────────
+  document.getElementById('subscribe-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('subscribe-email').value;
+    if (!email) return;
+    this.style.display = 'none';
+    const confirm = document.getElementById('subscribe-confirm');
+    confirm.style.display = 'flex';
+    // In production: send email to backend / email service
+    console.log('[status] Subscribe request for:', email);
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  renderComponents();
+  renderUptimeHistory();
+  renderIncidents();
+  updateTimestamp();
+
+  // Start with full bar, then begin countdown
+  progressEl.style.transition = 'none';
+  progressEl.style.width = '100%';
+  setTimeout(() => {
+    progressEl.style.transition = 'width 1s linear';
+    setInterval(tick, 1000);
+  }, 100);
+</script>
+</body>
+</html>

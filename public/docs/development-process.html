@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Development Process — MyHealthStatus</title>
+  <meta name="description" content="Secure development practices and engineering standards for MyHealthStatus." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-600: #2563eb;
+      --blue-50:  #eff6ff;
+      --blue-100: #dbeafe;
+      --blue-700: #1d4ed8;
+      --emerald-600: #059669;
+      --emerald-50:  #ecfdf5;
+      --emerald-100: #d1fae5;
+      --orange-600: #d97706;
+      --orange-50:  #fffbeb;
+      --gray-50:  #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --sidebar-width: 256px;
+      --header-height: 56px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--gray-800);
+      background: #fff;
+    }
+
+    /* ── Top nav ─────────────────────────────────── */
+    .topnav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: #fff;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .topnav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .topnav-logo-icon {
+      width: 28px; height: 28px;
+      background: var(--blue-600);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .topnav-logo-icon svg { width: 16px; height: 16px; color: #fff; }
+
+    .topnav-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+
+    .topnav-sep {
+      width: 1px; height: 20px;
+      background: var(--gray-200);
+    }
+
+    .topnav-breadcrumb {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    .topnav-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 99px;
+      letter-spacing: 0.01em;
+    }
+    .badge-blue    { background: var(--blue-50);    color: var(--blue-700);    border: 1px solid var(--blue-100); }
+    .badge-emerald { background: var(--emerald-50); color: var(--emerald-600); border: 1px solid var(--emerald-100); }
+    .badge-gray    { background: var(--gray-100);   color: var(--gray-600);    border: 1px solid var(--gray-200); }
+    .badge-orange  { background: var(--orange-50);  color: var(--orange-600);  border: 1px solid #fde68a; }
+
+    /* ── Layout ──────────────────────────────────── */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+      padding-top: var(--header-height);
+    }
+
+    /* ── Sidebar ─────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+      border-right: 1px solid var(--gray-200);
+      padding: 24px 0 32px;
+      background: var(--gray-50);
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gray-400);
+      padding: 0 20px 8px;
+      margin-top: 20px;
+    }
+    .sidebar-section-label:first-child { margin-top: 0; }
+
+    .sidebar a {
+      display: block;
+      padding: 6px 20px;
+      font-size: 13px;
+      color: var(--gray-600);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      line-height: 1.5;
+    }
+
+    .sidebar a:hover {
+      color: var(--gray-900);
+      background: var(--gray-100);
+    }
+
+    .sidebar a.active {
+      color: var(--blue-600);
+      border-left-color: var(--blue-600);
+      background: var(--blue-50);
+      font-weight: 500;
+    }
+
+    .sidebar a.sub {
+      padding-left: 32px;
+      font-size: 12.5px;
+    }
+
+    /* ── Main content ────────────────────────────── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      margin-left: var(--sidebar-width);
+      padding: 48px 64px 80px;
+      max-width: 900px;
+    }
+
+    /* ── Typography ──────────────────────────────── */
+    .doc-header { margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid var(--gray-200); }
+
+    .doc-header-eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--blue-600);
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--gray-900);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+
+    .doc-header-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .doc-header-meta-item {
+      font-size: 12px;
+      color: var(--gray-500);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .doc-header-meta-item svg {
+      width: 13px; height: 13px;
+      flex-shrink: 0;
+      color: var(--gray-400);
+    }
+
+    .doc-lead {
+      font-size: 16px;
+      color: var(--gray-500);
+      line-height: 1.7;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      letter-spacing: -0.015em;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2::before {
+      content: '';
+      display: inline-block;
+      width: 4px; height: 22px;
+      background: var(--blue-600);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-top: 28px;
+      margin-bottom: 12px;
+    }
+
+    p { margin-bottom: 14px; color: var(--gray-700); line-height: 1.7; }
+    p:last-child { margin-bottom: 0; }
+
+    /* ── Section cards ───────────────────────────── */
+    .section {
+      margin-top: 48px;
+      padding-top: 8px;
+    }
+
+    .section:first-of-type { margin-top: 32px; }
+
+    /* ── Tech stack grid ─────────────────────────── */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stack-card {
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 14px 16px;
+      background: var(--gray-50);
+    }
+
+    .stack-card-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--gray-400);
+      margin-bottom: 4px;
+    }
+
+    .stack-card-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    /* ── Ordered / unordered lists ───────────────── */
+    ul, ol { padding-left: 20px; margin-bottom: 14px; }
+    li { color: var(--gray-700); line-height: 1.7; margin-bottom: 4px; font-size: 14px; }
+    li:last-child { margin-bottom: 0; }
+
+    /* ── Principles grid ─────────────────────────── */
+    .principles-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .principles-grid { grid-template-columns: 1fr; }
+    }
+
+    .principle-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--gray-700);
+    }
+
+    .principle-num {
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      margin-top: 1px;
+    }
+
+    .principle-num-blue { background: var(--blue-100); color: var(--blue-700); }
+    .principle-num-emerald { background: var(--emerald-100); color: var(--emerald-600); }
+
+    /* ── Step list ───────────────────────────────── */
+    .step-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 12px;
+    }
+
+    .step-list li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 0;
+      position: relative;
+    }
+
+    .step-list li::after {
+      content: '';
+      position: absolute;
+      left: 14px;
+      top: 32px;
+      bottom: -12px;
+      width: 1px;
+      background: var(--gray-200);
+    }
+
+    .step-list li:last-child::after { display: none; }
+
+    .step-list-entry {
+      padding-bottom: 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .step-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--blue-600);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      z-index: 1;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: var(--gray-700);
+      padding-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Info boxes ──────────────────────────────── */
+    .infobox {
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin: 16px 0;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .infobox-blue {
+      background: var(--blue-50);
+      border: 1px solid var(--blue-100);
+      color: #1e40af;
+    }
+
+    .infobox-emerald {
+      background: var(--emerald-50);
+      border: 1px solid var(--emerald-100);
+      color: #065f46;
+    }
+
+    .infobox-icon { flex-shrink: 0; margin-top: 2px; }
+    .infobox-icon svg { width: 15px; height: 15px; }
+
+    /* ── Two-column grid ─────────────────────────── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+    .feature-card {
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .feature-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feature-card-title svg { width: 14px; height: 14px; color: var(--blue-600); }
+
+    .feature-card ul {
+      margin: 0; padding-left: 16px;
+    }
+
+    .feature-card li { font-size: 13px; color: var(--gray-600); margin-bottom: 4px; }
+
+    /* ── Access table ────────────────────────────── */
+    .access-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 13px;
+    }
+
+    .access-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--gray-500);
+      padding: 8px 12px;
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .access-table th:first-child { border-radius: 8px 0 0 0; }
+    .access-table th:last-child  { border-radius: 0 8px 0 0; }
+
+    .access-table td {
+      padding: 10px 12px;
+      color: var(--gray-700);
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .access-table tr:last-child td { border-bottom: none; }
+    .access-table tr:hover td { background: var(--gray-50); }
+
+    /* ── Contact cards ───────────────────────────── */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .contact-card {
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .contact-role {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--gray-400);
+      margin-bottom: 4px;
+    }
+
+    .contact-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 2px;
+    }
+
+    .contact-email {
+      font-size: 12px;
+      color: var(--blue-600);
+      font-family: var(--font-mono);
+    }
+
+    /* ── Compliance ──────────────────────────────── */
+    .compliance-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .compliance-item {
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .compliance-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .compliance-icon svg { width: 16px; height: 16px; }
+    .ci-blue    { background: var(--blue-50);    color: var(--blue-600); }
+    .ci-emerald { background: var(--emerald-50); color: var(--emerald-600); }
+    .ci-orange  { background: var(--orange-50);  color: var(--orange-600); }
+
+    .compliance-name { font-size: 13px; font-weight: 600; color: var(--gray-800); margin-bottom: 2px; }
+    .compliance-status { font-size: 11.5px; color: var(--gray-500); }
+
+    /* ── Footer ──────────────────────────────────── */
+    .doc-footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .doc-footer-text { font-size: 12px; color: var(--gray-400); }
+    .doc-footer a { color: var(--blue-600); text-decoration: none; }
+    .doc-footer a:hover { text-decoration: underline; }
+
+    /* ── Anchors ─────────────────────────────────── */
+    h2, h3 { scroll-margin-top: calc(var(--header-height) + 24px); }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 32px 24px 60px; max-width: 100%; }
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 24px; }
+      h2 { font-size: 18px; }
+      .main { padding: 24px 16px 48px; }
+    }
+
+    /* ── Divider ─────────────────────────────────── */
+    hr { border: none; border-top: 1px solid var(--gray-200); margin: 40px 0; }
+
+    a { color: var(--blue-600); }
+    a:hover { text-decoration: none; }
+
+    strong { font-weight: 600; color: var(--gray-800); }
+  </style>
+</head>
+<body>
+
+<!-- Top nav -->
+<nav class="topnav">
+  <a href="/" class="topnav-logo">
+    <div class="topnav-logo-icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+    </div>
+    <span class="topnav-title">MyHealthStatus</span>
+  </a>
+  <div class="topnav-sep"></div>
+  <span class="topnav-breadcrumb">Docs</span>
+  <div class="topnav-right">
+    <span class="badge badge-blue">v1.0</span>
+    <span class="badge badge-emerald">Internal</span>
+  </div>
+</nav>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section-label">Overview</div>
+    <a href="#overview">Overview</a>
+    <a href="#tech-stack">Tech Stack</a>
+
+    <div class="sidebar-section-label">Workflow</div>
+    <a href="#code-management">1. Code Management</a>
+    <a href="#security-principles">2. Security Principles</a>
+    <a href="#sub-secure" class="sub">Secure-by-Design</a>
+    <a href="#sub-privacy" class="sub">Privacy-by-Design</a>
+    <a href="#code-review">3. Code Review</a>
+    <a href="#security-standards">4. Security Standards</a>
+    <a href="#sub-authn" class="sub">Auth &amp; Access</a>
+    <a href="#sub-data" class="sub">Data Protection</a>
+    <a href="#sub-vuln" class="sub">Vulnerability Mgmt</a>
+    <a href="#dev-environment">5. Dev Environment</a>
+    <a href="#deployment">6. Deployment</a>
+    <a href="#monitoring">7. Monitoring</a>
+    <a href="#incident-response">8. Incident Response</a>
+
+    <div class="sidebar-section-label">Reference</div>
+    <a href="#contact">Contact</a>
+    <a href="#compliance">Compliance</a>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Header -->
+    <header class="doc-header" id="overview">
+      <div class="doc-header-eyebrow">Engineering Documentation</div>
+      <h1>Development Process</h1>
+      <p class="doc-lead">
+        This document outlines the secure development practices and engineering standards for
+        MyHealthStatus — a HIPAA-aligned health information platform for private STI test result management.
+      </p>
+      <div class="doc-header-meta">
+        <span class="doc-header-meta-item">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Last updated: May 8, 2026
+        </span>
+        <span class="doc-header-meta-item">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Version 1.0
+        </span>
+        <span class="doc-header-meta-item">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          Carsean · Technical Lead
+        </span>
+        <span class="badge badge-orange">Confidential</span>
+      </div>
+    </header>
+
+    <!-- Tech Stack -->
+    <section class="section" id="tech-stack">
+      <h2>Tech Stack</h2>
+      <div class="stack-grid">
+        <div class="stack-card">
+          <div class="stack-card-label">Frontend</div>
+          <div class="stack-card-value">React + Vite</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-label">Backend / Database</div>
+          <div class="stack-card-value">Firebase (Firestore)</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-label">Authentication</div>
+          <div class="stack-card-value">Firebase Auth (JWT)</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-label">Hosting</div>
+          <div class="stack-card-value">Netlify</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-label">Version Control</div>
+          <div class="stack-card-value">GitHub (private)</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-label">Language</div>
+          <div class="stack-card-value">TypeScript + SQL</div>
+        </div>
+      </div>
+    </section>
+
+    <hr />
+
+    <!-- 1. Code Management -->
+    <section class="section" id="code-management">
+      <h2>1. Code Management</h2>
+      <ul>
+        <li>All source code stored in a private GitHub repository</li>
+        <li>Branch protection enabled on <code style="font-family:var(--font-mono);font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px;">main</code> — direct pushes blocked</li>
+        <li>Pull request reviews required for all changes before merge</li>
+        <li>Automated CI checks run on every commit (tests + security scans)</li>
+        <li>Signed commits encouraged for all contributors</li>
+      </ul>
+    </section>
+
+    <!-- 2. Security Principles -->
+    <section class="section" id="security-principles">
+      <h2>2. Security Principles</h2>
+
+      <h3 id="sub-secure">Secure-by-Design Principles</h3>
+      <div class="principles-grid">
+        <div class="principle-item"><span class="principle-num principle-num-blue">1</span>Minimize attack surface area</div>
+        <div class="principle-item"><span class="principle-num principle-num-blue">2</span>Establish secure defaults</div>
+        <div class="principle-item"><span class="principle-num principle-num-blue">3</span>Principle of least privilege</div>
+        <div class="principle-item"><span class="principle-num principle-num-blue">4</span>Defense in depth</div>
+        <div class="principle-item"><span class="principle-num principle-num-blue">5</span>Fail securely</div>
+        <div class="principle-item"><span class="principle-num principle-num-blue">6</span>Don't trust services</div>
+        <div class="principle-item"><span class="principle-num principle-num-blue">7</span>Separation of duties</div>
+        <div class="principle-item"><span class="principle-num principle-num-blue">8</span>Avoid security by obscurity</div>
+        <div class="principle-item"><span class="principle-num principle-num-blue">9</span>Keep security simple</div>
+        <div class="principle-item"><span class="principle-num principle-num-blue">10</span>Fix security issues correctly</div>
+      </div>
+
+      <h3 id="sub-privacy" style="margin-top:28px;">Privacy-by-Design Principles</h3>
+      <div class="principles-grid">
+        <div class="principle-item"><span class="principle-num principle-num-emerald">1</span>Proactive, not reactive</div>
+        <div class="principle-item"><span class="principle-num principle-num-emerald">2</span>Privacy as the default setting</div>
+        <div class="principle-item"><span class="principle-num principle-num-emerald">3</span>Privacy embedded into design</div>
+        <div class="principle-item"><span class="principle-num principle-num-emerald">4</span>Full functionality (Positive-Sum)</div>
+        <div class="principle-item"><span class="principle-num principle-num-emerald">5</span>End-to-end security</div>
+        <div class="principle-item"><span class="principle-num principle-num-emerald">6</span>Visibility and transparency</div>
+        <div class="principle-item"><span class="principle-num principle-num-emerald">7</span>Respect for user privacy</div>
+      </div>
+    </section>
+
+    <!-- 3. Code Review -->
+    <section class="section" id="code-review">
+      <h2>3. Code Review Process</h2>
+      <p>All code changes go through a four-stage review gate before deployment:</p>
+      <ol style="margin-top:12px;">
+        <li><strong>Developer self-review</strong> — author verifies diff before opening PR</li>
+        <li><strong>Peer code review</strong> — at least one approved review required</li>
+        <li><strong>Automated security scanning</strong> — GitHub Dependabot (dependencies) + CodeQL (code analysis)</li>
+        <li><strong>Deployment approval</strong> — sign-off from technical lead before merge to <code style="font-family:var(--font-mono);font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px;">main</code></li>
+      </ol>
+      <div class="infobox infobox-blue" style="margin-top:16px;">
+        <span class="infobox-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </span>
+        Full review standards are documented in <strong>CODE_REVIEW_POLICY.md</strong> in the repository root.
+      </div>
+    </section>
+
+    <!-- 4. Security Standards -->
+    <section class="section" id="security-standards">
+      <h2>4. Security Standards</h2>
+
+      <h3 id="sub-authn">Authentication &amp; Authorization</h3>
+      <div class="two-col">
+        <div class="feature-card">
+          <div class="feature-card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+            Identity
+          </div>
+          <ul>
+            <li>JWT-based auth via Firebase</li>
+            <li>Secure session management</li>
+            <li>Multi-factor authentication (MFA) supported</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+            Access Control
+          </div>
+          <ul>
+            <li>Row Level Security (RLS) on all tables</li>
+            <li>Role-based access control (RBAC)</li>
+            <li>Hospital-scoped data isolation</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 id="sub-data" style="margin-top:28px;">Data Protection</h3>
+      <div class="two-col">
+        <div class="feature-card">
+          <div class="feature-card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            Encryption
+          </div>
+          <ul>
+            <li>At rest: AES-256</li>
+            <li>In transit: TLS 1.3</li>
+            <li>HIPAA-compliant infrastructure</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" /></svg>
+            Backup &amp; Retention
+          </div>
+          <ul>
+            <li>Automated daily backups</li>
+            <li>7-year audit log retention</li>
+            <li>Point-in-time recovery (PITR)</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 id="sub-vuln" style="margin-top:28px;">Vulnerability Management</h3>
+      <ul>
+        <li>Automated dependency scanning via GitHub Dependabot</li>
+        <li>Static code analysis via GitHub CodeQL on every push</li>
+        <li>Third-party penetration testing (WorkStreet — May 2026)</li>
+        <li>Responsible disclosure via <a href="/.well-known/security.txt">security.txt</a></li>
+        <li>Security patches prioritised by severity within defined SLAs</li>
+      </ul>
+    </section>
+
+    <!-- 5. Dev Environment -->
+    <section class="section" id="dev-environment">
+      <h2>5. Development Environments</h2>
+
+      <h3>Environment Separation</h3>
+      <table class="access-table" style="margin-top:12px;">
+        <thead>
+          <tr>
+            <th>Environment</th>
+            <th>URL</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-gray">Development</span></td>
+            <td style="font-family:var(--font-mono);font-size:12px;">bolt.new / localhost</td>
+            <td>Feature development &amp; testing</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-orange">Staging</span></td>
+            <td style="font-family:var(--font-mono);font-size:12px;">—</td>
+            <td>Pre-production validation (if applicable)</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-emerald">Production</span></td>
+            <td style="font-family:var(--font-mono);font-size:12px;">myhealthstatus.netlify.app</td>
+            <td>Live application</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:24px;">Access Control</h3>
+      <table class="access-table">
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Name</th>
+            <th>Access Level</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Technical Lead</td>
+            <td>Carsean</td>
+            <td><span class="badge badge-blue">Full access</span></td>
+          </tr>
+          <tr>
+            <td>Executive</td>
+            <td>Nikita Wilson</td>
+            <td><span class="badge badge-gray">Business oversight</span></td>
+          </tr>
+          <tr>
+            <td>Contractors</td>
+            <td>—</td>
+            <td><span class="badge badge-orange">Limited, scoped access only</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 6. Deployment -->
+    <section class="section" id="deployment">
+      <h2>6. Deployment Process</h2>
+      <ol class="step-list">
+        <li>
+          <div class="step-list-entry">
+            <div class="step-dot">1</div>
+            <div class="step-text"><strong>Code committed to GitHub</strong> — feature branch opened, PR created</div>
+          </div>
+        </li>
+        <li>
+          <div class="step-list-entry">
+            <div class="step-dot">2</div>
+            <div class="step-text"><strong>Automated tests run</strong> — unit, integration, and type checks</div>
+          </div>
+        </li>
+        <li>
+          <div class="step-list-entry">
+            <div class="step-dot">3</div>
+            <div class="step-text"><strong>Security scans complete</strong> — Dependabot + CodeQL must pass</div>
+          </div>
+        </li>
+        <li>
+          <div class="step-list-entry">
+            <div class="step-dot">4</div>
+            <div class="step-text"><strong>Manual review and approval</strong> — peer review + technical lead sign-off</div>
+          </div>
+        </li>
+        <li>
+          <div class="step-list-entry">
+            <div class="step-dot">5</div>
+            <div class="step-text"><strong>Deploy to Netlify</strong> — merge to <code style="font-family:var(--font-mono);font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px;">main</code> triggers automatic build</div>
+          </div>
+        </li>
+        <li>
+          <div class="step-list-entry">
+            <div class="step-dot">6</div>
+            <div class="step-text"><strong>Post-deployment verification</strong> — smoke tests on live environment</div>
+          </div>
+        </li>
+        <li>
+          <div class="step-list-entry">
+            <div class="step-dot">7</div>
+            <div class="step-text"><strong>Rollback capability maintained</strong> — previous build retained for instant revert</div>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- 7. Monitoring -->
+    <section class="section" id="monitoring">
+      <h2>7. Monitoring &amp; Logging</h2>
+      <ul>
+        <li>Firebase database monitoring — query performance and anomaly detection</li>
+        <li>Netlify deployment logs — build history, function logs, and error tracking</li>
+        <li>Application error tracking and real-time alerting</li>
+        <li>Access logs with 7-year retention for compliance</li>
+        <li>Audit logs for all sensitive operations (uploads, shares, admin actions)</li>
+      </ul>
+      <div class="infobox infobox-emerald" style="margin-top:16px;">
+        <span class="infobox-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </span>
+        All hospital admin actions — including result uploads, patient lookups, and profile changes — are written to an immutable audit log scoped per facility and per admin user.
+      </div>
+    </section>
+
+    <!-- 8. Incident Response -->
+    <section class="section" id="incident-response">
+      <h2>8. Incident Response</h2>
+      <p>
+        In the event of a suspected security incident, the incident response plan defines
+        containment, investigation, notification, and remediation steps. Response SLAs by severity:
+      </p>
+      <table class="access-table" style="margin-top:12px;">
+        <thead>
+          <tr><th>Severity</th><th>Response Time</th><th>Examples</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;">Critical</span></td>
+            <td>Within 24 hours</td>
+            <td>Data breach, auth bypass, PII exposure</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-orange">High / Medium</span></td>
+            <td>Within 1 week</td>
+            <td>Privilege escalation, dependency CVE</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-gray">Low / Info</span></td>
+            <td>Within 2 weeks</td>
+            <td>Information disclosure, minor misconfig</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="infobox infobox-blue" style="margin-top:16px;">
+        <span class="infobox-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </span>
+        Full procedures are documented in <strong>INCIDENT_RESPONSE_PLAN.md</strong> in the repository. Report vulnerabilities via <a href="mailto:security@myhealthstatus.org">security@myhealthstatus.org</a> or <a href="/.well-known/security.txt">security.txt</a>.
+      </div>
+    </section>
+
+    <hr />
+
+    <!-- Contact -->
+    <section class="section" id="contact">
+      <h2>Contact</h2>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="contact-role">Technical Lead</div>
+          <div class="contact-name">Carsean</div>
+          <div class="contact-email">(via GitHub / internal)</div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-role">Executive</div>
+          <div class="contact-name">Nikita Wilson</div>
+          <div class="contact-email">n.wilson@myhealthstatus.org</div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-role">Security Disclosure</div>
+          <div class="contact-name">Security Team</div>
+          <div class="contact-email">security@myhealthstatus.org</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Compliance -->
+    <section class="section" id="compliance">
+      <h2>Compliance</h2>
+      <div class="compliance-grid">
+        <div class="compliance-item">
+          <div class="compliance-icon ci-blue">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <div class="compliance-name">SOC 2 Type II</div>
+            <div class="compliance-status"><span class="badge badge-orange">In progress</span></div>
+          </div>
+        </div>
+        <div class="compliance-item">
+          <div class="compliance-icon ci-emerald">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="compliance-name">HIPAA Alignment</div>
+            <div class="compliance-status"><span class="badge badge-emerald">Active</span></div>
+          </div>
+        </div>
+        <div class="compliance-item">
+          <div class="compliance-icon ci-blue">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="compliance-name">Penetration Test</div>
+            <div class="compliance-status"><span class="badge badge-emerald">Passed — May 2026</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="doc-footer">
+      <div class="doc-footer-text">
+        &copy; 2026 MyHealthStatus &mdash; Internal documentation. Confidential.
+      </div>
+      <div class="doc-footer-text">
+        <a href="/.well-known/security.txt">security.txt</a> &middot;
+        <a href="mailto:security@myhealthstatus.org">Report a vulnerability</a>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // Highlight active sidebar link based on scroll position
+  const sections = document.querySelectorAll('section[id], header[id]');
+  const links = document.querySelectorAll('.sidebar a');
+
+  function onScroll() {
+    let current = '';
+    sections.forEach(s => {
+      const top = s.getBoundingClientRect().top;
+      if (top <= 80) current = s.id;
+    });
+    links.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>
