@@ -1,0 +1,23 @@
+Contact: mailto:security@myhealthstatus.org
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://myhealthstatus.netlify.app/.well-known/security.txt
+
+# Security Policy
+# If you discover a security vulnerability, please report it to:
+# Email: security@myhealthstatus.org
+#
+# We appreciate responsible disclosure and will work with you to address
+# any issues promptly.
+
+# Scope
+# This security policy applies to:
+# - https://myhealthstatus.netlify.app
+# - All subdomains and related services
+
+# Response Time
+# - Critical issues: Within 24 hours
+# - High/Medium: Within 1 week
+# - Low/Info: Within 2 weeks
+
+# Thank you for helping keep MyHealthStatus secure.
