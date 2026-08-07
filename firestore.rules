@@ -1,0 +1,245 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: is the request authenticated?
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper: does the authenticated user's uid match the document's user_id field?
+    function isOwner() {
+      return isSignedIn() && request.auth.uid == resource.data.user_id;
+    }
+
+    // Helper: does the incoming write set user_id to the authenticated user?
+    function isCreatingOwn() {
+      return isSignedIn() && request.auth.uid == request.resource.data.user_id;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // users — own profile read/write only
+    // ─────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // test_results — strict owner-only access
+    // ─────────────────────────────────────────────────────
+    match /test_results/{resultId} {
+      allow read: if isOwner();
+      allow create: if isCreatingOwn();
+      allow update: if isOwner() && request.auth.uid == request.resource.data.user_id;
+      allow delete: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // shares — strict owner-only access
+    // ─────────────────────────────────────────────────────
+    match /shares/{shareId} {
+      allow read: if isOwner();
+      allow create: if isCreatingOwn();
+      allow update: if isOwner() && request.auth.uid == request.resource.data.user_id;
+      allow delete: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // share_results — owner-only (filtered via share's user_id)
+    // Clients can read share_results where user_id matches their uid.
+    // ─────────────────────────────────────────────────────
+    match /share_results/{shareResultId} {
+      allow read: if isOwner();
+      allow create: if isCreatingOwn();
+      allow update: if isOwner() && request.auth.uid == request.resource.data.user_id;
+      allow delete: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // audit_logs — NO client access (write-only via Admin SDK / Cloud Functions)
+    // ─────────────────────────────────────────────────────
+    match /audit_logs/{logId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // access_logs — NO client access (write-only via Admin SDK / Cloud Functions)
+    // ─────────────────────────────────────────────────────
+    match /access_logs/{logId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // share_access_logs — readable by the share owner only
+    // (the share owner views these in AccessLogsModal)
+    // Writes come from the Cloud Function via Admin SDK, not the client.
+    // ─────────────────────────────────────────────────────
+    match /share_access_logs/{logId} {
+      allow read: if isSignedIn() && request.auth.uid == resource.data.user_id;
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // pilot_signups — public create, no client read
+    // ─────────────────────────────────────────────────────
+    match /pilot_signups/{signupId} {
+      allow read: if false;
+      allow create: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // Supporting collections — owner-only where applicable
+    // ─────────────────────────────────────────────────────
+    match /hospital_activity_logs/{logId} {
+      allow read: if isSignedIn() && request.auth.uid == resource.data.admin_user_id;
+      allow write: if false;
+    }
+
+    match /security_incidents/{incidentId} {
+      allow read: if isOwner();
+      allow create: if isCreatingOwn();
+      allow update: if isOwner();
+      allow delete: if false;
+    }
+
+    match /security_activity_log/{logId} {
+      allow read: if isOwner();
+      allow create: if isCreatingOwn();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /security_preferences/{prefId} {
+      allow read: if isSignedIn() && request.auth.uid == prefId;
+      allow create: if isSignedIn() && request.auth.uid == prefId;
+      allow update: if isSignedIn() && request.auth.uid == prefId;
+      allow delete: if isSignedIn() && request.auth.uid == prefId;
+    }
+
+    match /user_sessions/{sessionId} {
+      allow read: if isOwner();
+      allow create: if isCreatingOwn();
+      allow update: if isOwner();
+      allow delete: if isOwner();
+    }
+
+    match /survey_responses/{responseId} {
+      allow read: if isOwner();
+      allow create: if isCreatingOwn();
+      allow update: if isOwner() && request.auth.uid == request.resource.data.user_id;
+      allow delete: if isOwner();
+    }
+
+    match /survey_answers/{answerId} {
+      allow read: if isOwner();
+      allow create: if isCreatingOwn();
+      allow update: if isOwner() && request.auth.uid == request.resource.data.user_id;
+      allow delete: if isOwner();
+    }
+
+    match /survey_notifications/{notifId} {
+      allow read: if isOwner();
+      allow create: if isCreatingOwn();
+      allow update: if isOwner() && request.auth.uid == request.resource.data.user_id;
+      allow delete: if false;
+    }
+
+    match /surveys/{surveyId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /survey_questions/{questionId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /founding_members/{memberId} {
+      allow read: if false;
+      allow create: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /waitlist/{entryId} {
+      allow read: if false;
+      allow create: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /signup_analytics/{eventId} {
+      allow read: if false;
+      allow create: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Statistics collections — public read only
+    match /sti_national_stats/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /sti_by_type/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /sti_demographics/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /sti_geographic/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /sti_trend_data/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /sti_prevention_data/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // fcm_tokens — owner-only; clients register/unregister their own token
+    // ─────────────────────────────────────────────────────
+    match /fcm_tokens/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // notification_preferences — owner-only
+    // ─────────────────────────────────────────────────────
+    match /notification_preferences/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Hospitals — readable by authenticated hospital admins
+    match /hospitals/{hospitalId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /user_profiles/{profileId} {
+      allow read: if isSignedIn() && request.auth.uid == profileId;
+      allow create: if isSignedIn() && request.auth.uid == profileId;
+      allow update: if isSignedIn() && request.auth.uid == profileId;
+      allow delete: if isSignedIn() && request.auth.uid == profileId;
+    }
+  }
+}
